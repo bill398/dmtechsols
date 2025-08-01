@@ -3,15 +3,6 @@ import react from '@vitejs/plugin-react';
 import { createLogger, defineConfig } from 'vite';
 
 const isDev = process.env.NODE_ENV !== 'production';
-let inlineEditPlugin, editModeDevPlugin;
-
-if (isDev) {
-  inlineEditPlugin = (await import('./plugins/visual-editor/vite-plugin-react-inline-editor.js')).default;
-  editModeDevPlugin = (await import('./plugins/visual-editor/vite-plugin-edit-mode.js')).default;
-}
-
-// Vite base for GitHub Pages
-const basePath = isDev ? '/' : '/dmtechsols/';
 
 const configHorizonsViteErrorHandler = `/* keep as-is */`;
 const configHorizonsRuntimeErrorHandler = `/* keep as-is */`;
@@ -65,36 +56,51 @@ logger.error = (msg, options) => {
   loggerError(msg, options);
 };
 
-export default defineConfig({
-  base: basePath, // ✅ auto-switch between dev and GitHub Pages
+export default defineConfig(async () => {
+  // Lazy load plugins only in dev (await allowed here)
+  let inlineEditPlugin, editModeDevPlugin;
+  if (isDev) {
+    inlineEditPlugin = (await import('./plugins/visual-editor/vite-plugin-react-inline-editor.js')).default;
+    editModeDevPlugin = (await import('./plugins/visual-editor/vite-plugin-edit-mode.js')).default;
+  }
 
-  customLogger: logger,
-  plugins: [
-    ...(isDev ? [inlineEditPlugin(), editModeDevPlugin()] : []),
-    react(),
-    addTransformIndexHtml,
-  ],
-  server: {
-    cors: true,
-    headers: {
-      'Cross-Origin-Embedder-Policy': 'credentialless',
+  const basePath = isDev ? '/' : '/dmtechsols/';
+
+  return {
+    base: basePath,
+
+    customLogger: logger,
+
+    plugins: [
+      ...(isDev ? [inlineEditPlugin(), editModeDevPlugin()] : []),
+      react(),
+      addTransformIndexHtml,
+    ],
+
+    server: {
+      cors: true,
+      headers: {
+        'Cross-Origin-Embedder-Policy': 'credentialless',
+      },
+      allowedHosts: true,
     },
-    allowedHosts: true,
-  },
-  resolve: {
-    extensions: ['.jsx', '.js', '.tsx', '.ts', '.json'],
-    alias: {
-      '@': path.resolve(__dirname, './src'),
+
+    resolve: {
+      extensions: ['.jsx', '.js', '.tsx', '.ts', '.json'],
+      alias: {
+        '@': path.resolve(__dirname, './src'),
+      },
     },
-  },
-  build: {
-    rollupOptions: {
-      external: [
-        '@babel/parser',
-        '@babel/traverse',
-        '@babel/generator',
-        '@babel/types',
-      ],
+
+    build: {
+      rollupOptions: {
+        external: [
+          '@babel/parser',
+          '@babel/traverse',
+          '@babel/generator',
+          '@babel/types',
+        ],
+      },
     },
-  },
+  };
 });
