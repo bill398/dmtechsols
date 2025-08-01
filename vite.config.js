@@ -4,6 +4,18 @@ import { createLogger, defineConfig } from 'vite';
 
 const isDev = process.env.NODE_ENV !== 'production';
 
+let inlineEditPlugin, editModeDevPlugin;
+
+if (isDev) {
+  // Using dynamic import inside an async function or top-level await if your environment supports it
+  // Otherwise, consider moving these plugin imports inside a function
+  inlineEditPlugin = (await import('./plugins/visual-editor/vite-plugin-react-inline-editor.js')).default;
+  editModeDevPlugin = (await import('./plugins/visual-editor/vite-plugin-edit-mode.js')).default;
+}
+
+// Vite base for GitHub Pages
+const basePath = isDev ? '/' : '/dmtechsols/';
+
 const configHorizonsViteErrorHandler = `/* keep as-is */`;
 const configHorizonsRuntimeErrorHandler = `/* keep as-is */`;
 const configHorizonsConsoleErrroHandler = `/* keep as-is */`;
@@ -56,51 +68,40 @@ logger.error = (msg, options) => {
   loggerError(msg, options);
 };
 
-export default defineConfig(async () => {
-  // Lazy load plugins only in dev (await allowed here)
-  let inlineEditPlugin, editModeDevPlugin;
-  if (isDev) {
-    inlineEditPlugin = (await import('./plugins/visual-editor/vite-plugin-react-inline-editor.js')).default;
-    editModeDevPlugin = (await import('./plugins/visual-editor/vite-plugin-edit-mode.js')).default;
-  }
+export default defineConfig({
+  base: basePath,
 
-  const basePath = isDev ? '/' : '/dmtechsols/';
+  customLogger: logger,
 
-  return {
-    base: basePath,
+  plugins: [
+    ...(isDev ? [inlineEditPlugin(), editModeDevPlugin()] : []),
+    react(),
+    addTransformIndexHtml,
+  ],
 
-    customLogger: logger,
-
-    plugins: [
-      ...(isDev ? [inlineEditPlugin(), editModeDevPlugin()] : []),
-      react(),
-      addTransformIndexHtml,
-    ],
-
-    server: {
-      cors: true,
-      headers: {
-        'Cross-Origin-Embedder-Policy': 'credentialless',
-      },
-      allowedHosts: true,
+  server: {
+    cors: true,
+    headers: {
+      'Cross-Origin-Embedder-Policy': 'credentialless',
     },
+    allowedHosts: true,
+  },
 
-    resolve: {
-      extensions: ['.jsx', '.js', '.tsx', '.ts', '.json'],
-      alias: {
-        '@': path.resolve(__dirname, './src'),
-      },
+  resolve: {
+    extensions: ['.jsx', '.js', '.tsx', '.ts', '.json'],
+    alias: {
+      '@': path.resolve(__dirname, './src'),
     },
+  },
 
-    build: {
-      rollupOptions: {
-        external: [
-          '@babel/parser',
-          '@babel/traverse',
-          '@babel/generator',
-          '@babel/types',
-        ],
-      },
+  build: {
+    rollupOptions: {
+      external: [
+        '@babel/parser',
+        '@babel/traverse',
+        '@babel/generator',
+        '@babel/types',
+      ],
     },
-  };
+  },
 });

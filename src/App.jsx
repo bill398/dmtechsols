@@ -1,6 +1,7 @@
 import React from 'react';
 import { Routes, Route, useLocation } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
+import './index.css'; // ✅ import your styles here
 
 import Layout from '@/components/Layout';
 import HomePage from '@/pages/HomePage';

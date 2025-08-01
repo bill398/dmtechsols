@@ -3,11 +3,10 @@
   "type": "module",
   "version": "0.0.0",
   "private": true,
- "scripts": {
-  "build": "vite build",
-  "deploy": "npm run build && git subtree push --prefix dist origin gh-pages"
-}
-,
+  "scripts": {
+    "build": "vite build",
+    "deploy": "npm run build && git subtree push --prefix dist origin gh-pages"
+  },
   "dependencies": {
     "@emailjs/browser": "^4.4.1",
     "@emotion/is-prop-valid": "^1.2.1",
