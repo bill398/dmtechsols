@@ -3,11 +3,11 @@
   "type": "module",
   "version": "0.0.0",
   "private": true,
-  "scripts": {
-    "dev": "vite",
-    "build": "node tools/generate-llms.js || true && vite build",
-    "preview": "vite preview"
-  },
+ "scripts": {
+  "build": "vite build",
+  "deploy": "npm run build && git subtree push --prefix dist origin gh-pages"
+}
+,
   "dependencies": {
     "@emailjs/browser": "^4.4.1",
     "@emotion/is-prop-valid": "^1.2.1",
@@ -44,6 +44,7 @@
     "autoprefixer": "^10.4.16",
     "eslint": "^8.57.1",
     "eslint-config-react-app": "^7.0.1",
+    "gh-pages": "^6.3.0",
     "postcss": "^8.4.31",
     "tailwindcss": "^3.3.3",
     "terser": "^5.39.0",
